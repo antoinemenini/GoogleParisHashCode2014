@@ -38,31 +38,18 @@ def biggestSquareIntel(arr,i,j):
     while ok:
         s+=1
         if (i+s<n) and (j+s<p) and (i>=s) and (j>=s):
-            for k in range (s+1):
+            for k in range (-s,s+1):
                 count = 0
                 if arr[i+k][j+s]==0:
                     count+=1
-                if arr[i-k][j+s]==0:
-                    count+=1
                 if arr[i+k][j-s]==0:
-                    count+=1
-                if arr[i-k][j-s]==0:
                     count+=1
                 if arr[i+s][j+k]==0:
                     count+=1
-                if arr[i+s][j-k]==0:
-                    count+=1
                 if arr[i-s][j+k]==0:
                     count+=1
-                if arr[i-s][j-k]==0:
-                    count+=1
-
-                ok = ok and (arr[i+k][j+s]>=1) and (arr[i+s][j+k]>=1)
-                ok = ok and (arr[i-k][j+s]>=1) and (arr[i+s][j-k]>=1)
-                ok = ok and (arr[i+k][j-s]>=1) and (arr[i-s][j+k]>=1)
-                ok = ok and (arr[i-k][j-s]>=1) and (arr[i-s][j-k]>=1)
-        else:
-            ok=False
+            if(count > s/2):
+                ok=False
     return [s-1,i,j]
 
 
