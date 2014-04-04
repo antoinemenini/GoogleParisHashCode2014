@@ -9,8 +9,8 @@ def compte(arr):
     for i in range(n):
         for j in range(p):
             if(arr[i][j]==1):
-                ++count
-    print count
+                count+=1
+    return count
 
 def biggestSquare(arr,i,j):
     n = arr.shape[0]
@@ -20,7 +20,7 @@ def biggestSquare(arr,i,j):
     while ok:
         s+=1
         if (i+s<n) and (j+s<p) and (i>=s) and (j>=s):
-            for k in range (s):
+            for k in range (s+1):
                 ok = ok and (arr[i+k][j+s]>=1) and (arr[i+s][j+k]>=1)
                 ok = ok and (arr[i-k][j+s]>=1) and (arr[i+s][j-k]>=1)
                 ok = ok and (arr[i+k][j-s]>=1) and (arr[i-s][j+k]>=1)
@@ -28,6 +28,43 @@ def biggestSquare(arr,i,j):
         else:
             ok=False
     return [s-1,i,j]
+
+
+def biggestSquareIntel(arr,i,j):
+    n = arr.shape[0]
+    p = arr.shape[1]
+    ok = (arr[i][j]==1)
+    s=0
+    while ok:
+        s+=1
+        if (i+s<n) and (j+s<p) and (i>=s) and (j>=s):
+            for k in range (s+1):
+                count = 0
+                if arr[i+k][j+s]==0:
+                    count+=1
+                if arr[i-k][j+s]==0:
+                    count+=1
+                if arr[i+k][j-s]==0:
+                    count+=1
+                if arr[i-k][j-s]==0:
+                    count+=1
+                if arr[i+s][j+k]==0:
+                    count+=1
+                if arr[i+s][j-k]==0:
+                    count+=1
+                if arr[i-s][j+k]==0:
+                    count+=1
+                if arr[i-s][j-k]==0:
+                    count+=1
+
+                ok = ok and (arr[i+k][j+s]>=1) and (arr[i+s][j+k]>=1)
+                ok = ok and (arr[i-k][j+s]>=1) and (arr[i+s][j-k]>=1)
+                ok = ok and (arr[i+k][j-s]>=1) and (arr[i-s][j+k]>=1)
+                ok = ok and (arr[i-k][j-s]>=1) and (arr[i-s][j-k]>=1)
+        else:
+            ok=False
+    return [s-1,i,j]
+
 
 if __name__=='__main__':
     a = np.zeros((4,4))
