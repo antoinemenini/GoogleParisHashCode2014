@@ -2,7 +2,12 @@ import numpy as np
 
 
 def main():
-    np.arange(10)
+    from load import load
+    import matplotlib.pyplot as plt
+
+    im = load('data/doodle.txt')
+    plt.imshow(im)
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -14,4 +19,4 @@ if __name__ == '__main__':
 
     if args.hw:
         print('Hello world!')
-    main()
+        np.range(2)
