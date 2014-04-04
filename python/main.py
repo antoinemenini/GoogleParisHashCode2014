@@ -9,6 +9,10 @@ def main():
     plt.imshow(im)
     plt.show()
 
+    from tom import sol1
+    test = sol1(im)
+    return test
+
 
 if __name__ == '__main__':
     import argparse
@@ -20,3 +24,4 @@ if __name__ == '__main__':
     if args.hw:
         print('Hello world!')
         np.range(2)
+    t = main()
