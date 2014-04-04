@@ -8,7 +8,7 @@ n = arr.shape[0]
 m = arr.shape[1]
 arr2 = np.zeros((n, m)) 
 
-with open('solution.txt') as f:
+with open('output2.txt') as f:
     instr_nbr = int(f.readline())
     instr_it = f.readlines()
     for i, instr in enumerate(instr_it):
@@ -28,5 +28,7 @@ with open('solution.txt') as f:
 result = True
 for k in range (0,n):
     for p in range (0,m):
-        result = result && arr[k,p]==arr2[k,p]
+        result = result & (arr[k,p] == arr2[k,p])
+
+print result
 
