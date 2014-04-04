@@ -60,19 +60,25 @@ def biggestSquareIntel(arr,i,j):
                     score+=1
             if(count > s/2):
                 ok=False
+        else:
+            ok=False
     return [score,s-1,i,j]
 
 def iterMalin(arr):
     bg_tab = []
+    #print "plop"
     n, m = arr.shape
     for i in range(n):
         for j in range(m):
-            #if j % 100 == 0:
-            #    sys.stdout.write('.')
-            #    sys.stdout.flush()
+            if(j%1000==0):
+                sys.stdout.write('.')
+                sys.stdout.flush()
             if arr[i, j] == 1:
                 bg_tab.append(biggestSquareIntel(arr, i, j))
+        #sys.stdout.write('\n')
     rank = np.array(bg_tab)
+    if len(bg_tab)==0:
+        return [-1,arr]
     ind = rank[:, 0].argsort()
     ranked_actions = rank[ind[::-1]]
     current = arr.copy()
@@ -97,15 +103,22 @@ def cleanWhite(arr):
 def solMalin(arr):
     score, tab = iterMalin(arr)
     while score>0:
+         #print score
         score, tab = iterMalin(tab)
     cleanWhite(tab)
 
 
 
 if __name__=='__main__':
-    a = np.zeros((4,4))
-    for i in range(3):
-        for j in range(3):
-            a[i][j]=1
-    print biggestSquare(a,1,1)
-    print biggestSquare(a,0,1)
+#    a = np.zeros((4,4))
+#    for i in range(3):
+#        for j in range(3):
+#            a[i][j]=1
+#    solMalin(a)
+    from load import load
+    #import matplotlib.pyplot as plt
+
+    im = load('data/doodle.txt')
+    #plt.imshow(im)
+    #plt.show()
+    solMalin(im)
