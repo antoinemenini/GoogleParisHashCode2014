@@ -20,13 +20,20 @@ public class ParcoursNaif {
 				LinkedList<Edge> routes = paris.streetsMap.get(currentIntersection);
 				float bestRatio = 0;
 				Edge bestRoute = null;
+				Edge secondBestRoute = null;
 				for (Edge route : routes){
-					float ratio = route.length / route.cost;
+					float ratio = route.length / route.cost + 1;
 					if(ratio > bestRatio && !parcouru[route.index] && route.cost <= timeLeft){
 						bestRoute = route;
 					}
+					if(ratio > bestRatio && route.cost <= timeLeft){
+						secondBestRoute = route;
+					}
 				}
-				if(bestRoute == null) break;
+				if(bestRoute == null){
+					if(secondBestRoute == null) break;
+					else bestRoute = secondBestRoute;
+				}
 				else{
 					score += bestRoute.length;
 					timeLeft -= bestRoute.cost;
