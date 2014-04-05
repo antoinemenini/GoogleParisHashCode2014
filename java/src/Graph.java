@@ -271,7 +271,7 @@ public class Graph {
         HashMap<Integer, Integer> distance = new HashMap<Integer, Integer>(N);
         HashMap<Integer, Integer> comeFrom = new HashMap<Integer, Integer>(N);
         LinkedList<Integer> toTreat=new LinkedList<Integer>();
-
+        int t=-1;
         toTreat.add(a0);
         distance.put(a0, 0);
         comeFrom.put(a0, a0);
@@ -306,7 +306,7 @@ public class Graph {
             path.addLast(a1);
             a = comeFrom.get(a1);
             int l=0;
-            int t = timeLeft-distance.get(a1);
+            t = timeLeft-distance.get(a1);
             while(a!=a0){
                 path.addFirst(a);
                 l++;
