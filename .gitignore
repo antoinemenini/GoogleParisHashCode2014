@@ -1,3 +1,6 @@
 *.pyc
 *.npy
 *.txt
+java/.project/*
+java/.classpath/*
+java/.settings
