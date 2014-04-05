@@ -268,56 +268,60 @@ public class Graph {
 
     int findPath(int a0, int a1, int timeLeft, boolean[] visitedEdge, Result res, int c){
 
-        HashMap<Integer, Integer> distance = new HashMap<Integer, Integer>(N);
-        HashMap<Integer, Integer> comeFrom = new HashMap<Integer, Integer>(N);
+        HashMap<Integer, Integer> timeFromO = new HashMap<Integer, Integer>(N);
+        HashMap<Integer, Edge> comeFrom = new HashMap<Integer, Edge>(N);
         LinkedList<Integer> toTreat=new LinkedList<Integer>();
         int t=-1;
         toTreat.add(a0);
-        distance.put(a0, 0);
-        comeFrom.put(a0, a0);
+        timeFromO.put(a0, 0);
+//        comeFrom.put(a0, a0);
         int a, d0, d1;
         while (!toTreat.isEmpty()){
             a = toTreat.pop();
             if(a==a1){
                 break;
             }
-            if(distance.get(a)<timeLeft){
+            if(timeFromO.get(a)<timeLeft){
                 for(Edge e : streetsMap.get(a)){
-                    if(!distance.containsKey(e.end)){
+                    if(!timeFromO.containsKey(e.end)){
                         toTreat.add(e.end);
-                        distance.put(e.end, distance.get(a)+e.cost);
-                        comeFrom.put(e.end, a);
+                        timeFromO.put(e.end, timeFromO.get(a)+e.cost);
+                        comeFrom.put(e.end, e);
                     } else {
-                        d0 = distance.get(e.end);
-                        d1 = distance.get(a)+e.cost;
+                        d0 = timeFromO.get(e.end);
+                        d1 = timeFromO.get(a)+e.cost;
                         if(d1<d0){
-                            distance.put(e.end, d1);
-                            comeFrom.put(e.end, a);
+                            timeFromO.put(e.end, d1);
+                            comeFrom.put(e.end, e);
                         }
                     }
                 }
             }
 
         }
-        if(distance.get(a1) > timeLeft){
-            System.err.println("Path not found in time : "+timeLeft+", need "+distance.get(a1));
+        if(timeFromO.get(a1) > timeLeft){
+            System.err.println("Path not found in time : "+timeLeft+", need "+timeFromO.get(a1));
         } else {
             LinkedList<Integer> path = new LinkedList<Integer>();
             path.addLast(a1);
-            a = comeFrom.get(a1);
+            Edge e = comeFrom.get(a1);
+            a = e.begin;
+            visitedEdge[e.index]=true;
             int l=0;
-            t = timeLeft-distance.get(a1);
+            t = timeLeft-timeFromO.get(a1);
             while(a!=a0){
                 path.addFirst(a);
                 l++;
                 if(comeFrom.containsKey(a)){
-                    a = comeFrom.get(a);
+                    e = comeFrom.get(a);
+                    a = e.begin;
+                    visitedEdge[e.index]=true;
                 } else {
                     System.err.println("Point not found : "+a);
                     break;
                 }
             }
-            System.out.println("Found a path of length "+l+" between "+a0+" and "+a1);
+            System.out.println("Found a path of time "+t+" between "+a0+" and "+a1);
             for(int step : path){
                 res.addStep(c, step);
             }
