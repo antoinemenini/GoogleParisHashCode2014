@@ -13,7 +13,6 @@ public class ParcoursNaif {
 		Arrays.fill(parcouru, false);
 		for(int vehicule=0; vehicule<paris.C; vehicule++){
 			int currentIntersection = paris.S;
-			int score = 0;
 			int timeLeft = paris.T;
 			while(true){
 				/* on parcourt la liste des rues pour cette intersection et on prend celle
@@ -64,7 +63,6 @@ public class ParcoursNaif {
 				else{
 					routeChoisie = bestRouteNonParcourue;
 				}
-				score += routeChoisie.length;
 				timeLeft -= routeChoisie.cost;
 				parcouru[routeChoisie.index] = true;
 				currentIntersection = routeChoisie.end;
@@ -86,7 +84,6 @@ public class ParcoursNaif {
 		Arrays.fill(cam_term, false);
 		while(!terminated){
 			int currentIntersection = paris.S;
-			int score = 0;
 			int timeLeft = paris.T;
 			for(int vehicule=0; vehicule<paris.C; vehicule++){
 				/* on parcourt la liste des rues pour cette intersection et on prend celle
@@ -138,7 +135,6 @@ public class ParcoursNaif {
 				else{
 					routeChoisie = bestRouteNonParcourue;
 				}
-				score += routeChoisie.length;
 				timeLeft -= routeChoisie.cost;
 				parcouru[routeChoisie.index] = true;
 				currentIntersection = routeChoisie.end;
@@ -164,18 +160,22 @@ public class ParcoursNaif {
 		Arrays.fill(cam_term, false);
 		boolean[] initDone = new boolean[paris.C];
 		Arrays.fill(initDone, false);
+		int[] currentIntersection = new int[paris.C];
+		Arrays.fill(currentIntersection, paris.S);
 		while(!terminated){
-			int currentIntersection = paris.S;
+			
 			int score = 0;
-			int timeLeft = paris.T;
+			int[] timeLeft = new int[paris.C];
+			Arrays.fill(timeLeft, paris.T);
 			for(int vehicule=0; vehicule<paris.C; vehicule++){
 				if(!initDone[vehicule]){
 					// on ammne le vŽhicule au point pointInit[vehicule]
-					timeLeft = paris.findPath(currentIntersection, pointInit[vehicule], timeLeft, parcouru, res, vehicule);
+					timeLeft[vehicule] = paris.findPath(currentIntersection[vehicule], pointInit[vehicule], timeLeft[vehicule], parcouru, res, vehicule);
+					initDone[vehicule] = true;
 				}
 				/* on parcourt la liste des rues pour cette intersection et on prend celle
 				avec le plus grand score qu n'a pas ŽtŽ visitŽe */
-				LinkedList<Edge> routes = paris.streetsMap.get(currentIntersection);
+				LinkedList<Edge> routes = paris.streetsMap.get(currentIntersection[vehicule]);
 				float bestRatioNonParcouru = 0;
 				Edge bestRouteNonParcourue = null;
 				Edge routeChoisie = null;
@@ -189,25 +189,25 @@ public class ParcoursNaif {
 					LinkedList<Edge> routesSuivantes = paris.streetsMap.get(route.end);
 					for (Edge routeSuivante : routesSuivantes){
 						float score2aux = 0;
-						if(!parcouru[routeSuivante.index] && !(routeSuivante.end==currentIntersection)){
+						if(!parcouru[routeSuivante.index] && !(routeSuivante.end==currentIntersection[vehicule])){
 							score2aux=(routeSuivante.length / routeSuivante.cost);
 							if(score2aux > score2) score2 = score2aux;
 						}
 					}
-					if(score2 > bestScore2 && route.cost <= timeLeft){
+					if(score2 > bestScore2 && route.cost <= timeLeft[vehicule]){
 						bestRouteByScore = route;
 						bestScore2 = score2;
 					}
-					if(ratio > bestRatioNonParcouru && !parcouru[route.index] && route.cost <= timeLeft){
+					if(ratio > bestRatioNonParcouru && !parcouru[route.index] && route.cost <= timeLeft[vehicule]){
 						bestRouteNonParcourue = route;
 						bestRatioNonParcouru = ratio;
 					}
-					if(route.cost <= timeLeft){
+					if(route.cost <= timeLeft[vehicule]){
 						possibleRoutes.add(route);
 					}
 				}
 				if(bestRouteNonParcourue == null && possibleRoutes.isEmpty()){
-					//System.out.println("breakdown "+ timeLeft + " camion "+vehicule);
+					System.out.println("breakdown "+ timeLeft[vehicule] + " camion "+vehicule);
 					cam_term[vehicule] = true;
 					break;
 				}
@@ -216,23 +216,23 @@ public class ParcoursNaif {
 					routeChoisie = possibleRoutes.get(generator.nextInt(possibleRoutes.size()));
 				}
 				else if(bestRouteNonParcourue == null){
-					System.out.println("bestroutebyscore");
 					routeChoisie = bestRouteByScore;
 				}
 				else{
 					routeChoisie = bestRouteNonParcourue;
 				}
 				score += routeChoisie.length;
-				timeLeft -= routeChoisie.cost;
+				timeLeft[vehicule] -= routeChoisie.cost;
 				parcouru[routeChoisie.index] = true;
-				currentIntersection = routeChoisie.end;
-				res.addStep(vehicule, currentIntersection);
+				currentIntersection[vehicule] = routeChoisie.end;
+				res.addStep(vehicule, currentIntersection[vehicule]);
 				//System.out.println("camion "+vehicule+" intersection "+currentIntersection);
 			}
 			
 			// on teste si tous les camions sont bloquŽs
+			terminated = true;
 			for(int h=0; h<paris.C; h++){
-				terminated = terminated || cam_term[h];
+				terminated = terminated && !cam_term[h];
 			}
 		}
 		res.print("outMenini.txt");

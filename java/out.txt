@@ -1,6 +1,10 @@
 Loading a graph from paris_54000.txt
 Loaded a graph of 11348 intersections and 17958 streets 
-Exception in thread "main" java.lang.NullPointerException
-	at Graph.findPath(Graph.java:309)
-	at ParcoursNaif.parcours(ParcoursNaif.java:174)
-	at Main.main(Main.java:7)
+Found a path of length 74 between 4516 and 7683
+Found a path of length 99 between 4516 and 6069
+Found a path of length 65 between 4516 and 7510
+Found a path of length 44 between 4516 and 3302
+Found a path of length 22 between 4516 and 7545
+Found a path of length 63 between 4516 and 7442
+Found a path of length 71 between 4516 and 5420
+Found a path of length 71 between 4516 and 5420
