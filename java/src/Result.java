@@ -1,3 +1,4 @@
+import java.io.OutputStream;
 import java.util.LinkedList;
 
 /**
@@ -22,5 +23,9 @@ public class Result {
     public void addStep(int c, int i){
         trips[c].add(i);
         ++step[c];
+    }
+
+    public void print(OutputStream out){
+
     }
 }

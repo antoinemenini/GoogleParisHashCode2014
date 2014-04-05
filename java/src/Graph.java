@@ -38,7 +38,7 @@ public class Graph {
             orientation = in.nextInt();
             c = in.nextInt();
             l = in.nextInt();
-            edge = new Edge(b, e, c, l);
+            edge = new Edge(b, e, c, l, 2*i);
             if(streetsMap.containsKey(b)){
                     streetsMap.get(b).add(edge);
                 } else {
@@ -47,7 +47,7 @@ public class Graph {
                     streetsMap.put(b, streets);
                 }
             if(orientation == 2) {
-                edge2 = new Edge(e, b, c, l);
+                edge2 = new Edge(e, b, c, l, 2*i+1);
                 if(streetsMap.containsKey(e)){
                     streetsMap.get(e).add(edge2);
                 } else {
