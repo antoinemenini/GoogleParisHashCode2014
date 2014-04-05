@@ -1,5 +1,6 @@
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Random;
 
 
 public class ParcoursNaif {
@@ -18,28 +19,37 @@ public class ParcoursNaif {
 				/* on parcourt la liste des rues pour cette intersection et on prend celle
 				avec le plus grand score qu n'a pas été visitée */
 				LinkedList<Edge> routes = paris.streetsMap.get(currentIntersection);
-				float bestRatio = 0;
-				Edge bestRoute = null;
-				Edge secondBestRoute = null;
+				float bestRatioNonParcouru = 0;
+				Edge bestRouteNonParcourue = null;
+				Edge routeChoisie = null;
+				LinkedList<Edge> possibleRoutes = new LinkedList<Edge>();
 				for (Edge route : routes){
 					float ratio = route.length / route.cost + 1;
-					if(ratio > bestRatio && !parcouru[route.index] && route.cost <= timeLeft){
-						bestRoute = route;
+					if(ratio > bestRatioNonParcouru && !parcouru[route.index] && route.cost <= timeLeft){
+						bestRouteNonParcourue = route;
+						bestRatioNonParcouru = ratio;
 					}
-					if(ratio > bestRatio && route.cost <= timeLeft){
-						secondBestRoute = route;
+					if(route.cost <= timeLeft){
+						possibleRoutes.add(route);
 					}
 				}
-				if(bestRoute == null){
-					if(secondBestRoute == null) break;
-					else bestRoute = secondBestRoute;
+				if(bestRouteNonParcourue == null && possibleRoutes.isEmpty()){
+					System.out.println("breakdown "+ timeLeft + " camion "+vehicule);
+					break;
+				}
+				else if(bestRouteNonParcourue == null){
+					Random generator = new Random();
+					routeChoisie = possibleRoutes.get(generator.nextInt(possibleRoutes.size()));
 				}
 				else{
-					score += bestRoute.length;
-					timeLeft -= bestRoute.cost;
-					currentIntersection = bestRoute.end;
-					res.addStep(vehicule, currentIntersection);
+					routeChoisie = bestRouteNonParcourue;
 				}
+				score += routeChoisie.length;
+				timeLeft -= routeChoisie.cost;
+				parcouru[routeChoisie.index] = true;
+				currentIntersection = routeChoisie.end;
+				res.addStep(vehicule, currentIntersection);
+				System.out.println("camion "+vehicule+" intersection "+currentIntersection);
 			}
 			
 			
