@@ -274,6 +274,7 @@ public class Graph {
 
         toTreat.add(a0);
         distance.put(a0, 0);
+        comeFrom.put(a0, a0);
         int a, d0, d1;
         while (!toTreat.isEmpty()){
             a = toTreat.pop();
@@ -304,15 +305,32 @@ public class Graph {
             LinkedList<Integer> path = new LinkedList<Integer>();
             path.addLast(a1);
             a = comeFrom.get(a1);
-            while(a!=a1){
+            int l=0;
+            int t = timeLeft-distance.get(a1);
+            while(a!=a0){
                 path.addFirst(a);
-                a = comeFrom.get(a);
+                l++;
+                if(comeFrom.containsKey(a)){
+                    a = comeFrom.get(a);
+                } else {
+                    System.err.println("Point not found : "+a);
+                    break;
+                }
             }
+            System.out.println("Found a path of length "+l+" between "+a0+" and "+a1);
             for(int step : path){
                 res.addStep(c, step);
             }
         }
-        return timeLeft-distance.get(a1);
+        return t;
+    }
+
+    public static void main(String[] args){
+        Graph paris = new Graph("paris_54000.txt");
+        boolean[] visitedEdges = new boolean[2*paris.M];
+        Result res = new Result(paris.C, paris.S);
+        paris.findPath(paris.S, 1000, paris.T, visitedEdges, res, 0);
+        res.print("path.txt");
     }
 
 
