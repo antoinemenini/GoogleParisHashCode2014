@@ -19,6 +19,7 @@ public class Graph {
         } catch (FileNotFoundException e) {
             System.err.println("Not able to open file : "+filename);
         }
+        System.out.println("Loading a graph from "+filename);
         N = in.nextInt();
         M = in.nextInt();
         T = in.nextInt();
@@ -57,5 +58,14 @@ public class Graph {
             }
         }
 
+        if(in.hasNext()){
+            System.out.println("Line left out : ");
+            System.out.println(in.nextLine());
+        }
+
+        System.out.println("Loaded a graph of "+N+" intersections and "+M+" streets ");
+
     }
+
+
 }
