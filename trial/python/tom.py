@@ -21,6 +21,8 @@ def sol1(A):
     ranked_actions = np.load('ranked_actions.npy')
     Current = A.copy()
     actions = []
+    oups = []
+    bib = []
     taken = []
     i = 0
     k = 24
@@ -32,7 +34,8 @@ def sol1(A):
         if nb_ac > k and i not in taken:
             Current[r - S:r + S + 1, s - S:s + S + 1] = 2
             act = ranked_actions[i]
-            actions.append('PAINTSQ {} {} {}'.format(act[1], act[2], act[0]))
+            bib.append(act[1] + act[2])
+            oups.append(act)
             paint_action -= nb_ac
             print(paint_action)
             taken.append(i)
@@ -40,6 +43,15 @@ def sol1(A):
         if i == N and k != 0:
             i = 0
             k -= 1
+        if s < k:
+            i = 0
+            k -= 1
+    ind = np.argsort(bib)
+    actions = []
+    oups = np.array(oups)
+    for act in oups[ind]:
+        actions.append('PAINTSQ {} {} {}'.format(act[1], act[2], act[0]))
+   
     return actions
 
 
