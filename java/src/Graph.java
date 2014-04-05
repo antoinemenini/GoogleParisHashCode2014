@@ -300,18 +300,19 @@ public class Graph {
         }
         if(distance.get(a1) > timeLeft){
             System.err.println("Path not found in time : "+timeLeft+", need "+distance.get(a1));
+        } else {
+            LinkedList<Integer> path = new LinkedList<Integer>();
+            path.addLast(a1);
+            a = comeFrom.get(a1);
+            while(a!=a1){
+                path.addFirst(a);
+                a = comeFrom.get(a);
+            }
+            for(int step : path){
+                res.addStep(c, step);
+            }
         }
-        LinkedList<Integer> path = new LinkedList<Integer>();
-        path.addLast(a1);
-        a = comeFrom.get(a1);
-        while(a!=a1){
-            path.addFirst(a);
-            a = comeFrom.get(a);
-        }
-        for(int step : path){
-            res.addStep(c, step);
-        }
-        return timeLeft;
+        return timeLeft-distance.get(a1);
     }
 
 
