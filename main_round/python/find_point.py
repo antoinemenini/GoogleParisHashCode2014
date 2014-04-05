@@ -12,7 +12,7 @@ def find_spread_point(G, N):
     min_d = np.ones(8)*100000000000000
     for i in range(N):
         for j in range(8):
-            l = np.linalg.norm(G.node[i]['pos'] - test[j])
+            l = sum((G.node[i]['pos'] - test[j])**2)
             if min_d[j] > l:
                 min_d[j] = l
                 sp[j] = i

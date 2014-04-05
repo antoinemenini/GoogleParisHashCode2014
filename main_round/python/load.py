@@ -36,8 +36,8 @@ def load():
     return G, params
 
 def load_sub(G, i):
-    nodes = np.genfromtxt('../sub{}'.format(i))
-    Gi = G.subgraph(nodes)
+    nodes = np.genfromtxt('../sub{}'.format(i), delimiter=',')
+    Gi = G.subgraph(nodes[:-1])
     return Gi
 
 

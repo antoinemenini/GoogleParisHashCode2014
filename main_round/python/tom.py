@@ -110,12 +110,12 @@ def main2(G, params, s_points):
                     sk[p['view']].append(k)
                 if len(sc[0]) > 0:
                     prob = draw_rv(sc[0])
-                    prob = (np.random.rand()< 0.75) & (len(sc[0])> 1)
+                    prob = (np.random.rand()< 0.25) & (len(sc[0])> 1)
                     current[i] = sk[0][np.argsort(sc[0])[prob]]
                     L += p['weight']
                 else:
                     #prob = draw_rv(sc[1])
-                    prob = (np.random.rand()< 0.5) & (len(sc[1])> 1)
+                    prob = (np.random.rand()< 0.25) & (len(sc[1])> 1)
                     current[i] = sk[1][prob]
                 paths_c[i].append(current[i])
                 d += 1
@@ -139,11 +139,20 @@ def main3(G, params, s_points):
     T = params[2]
     L = 0
 
+
+    from load import load_sub
+    sub_G = []
+    for i in range(1,C+1):
+        sub_G.append(load_sub(G, i))
+
     t = np.zeros(C)
     paths_c = []
     current = []
     for i, sp in enumerate(s_points):
-        p1 = ntx.dijkstra_path(G, S, sp)
+        d = sub_G[i].degree()
+        sp = d.keys()[np.argmax(d.values)]
+        s_points[i] = sp
+        p1 = ntx.dijkstra_path(G, S, sp )
         for c, c1 in zip(p1[:-1], p1[1:]):
             t[i] += G[c][c1]['time']
             if G.edge[c][c1]['view'] == 0:
@@ -157,10 +166,6 @@ def main3(G, params, s_points):
         current.append(sp)
 
     go = True
-    from load import load_sub
-    sub_G = []
-    for i in range(C):
-        sub_G.append(load_sub(G, i))
     
     d = 0
     while go:
@@ -183,25 +188,48 @@ def main3(G, params, s_points):
                     sc[p['view']].append((1-p['view'])*(p['time']*1./p['weight'])
                                          + p['view']*(1./nb_node_not_visited(G, k)))
                     sk[p['view']].append(k)
-                if len(sc[0]) > 0:
-                    prob = draw_rv(sc[0])
-                    prob = (np.random.rand()< 0.75) & (len(sc[0])> 1)
-                    current[i] = sk[0][np.argsort(sc[0])[prob]]
-                    L += p['weight']
+                bibpl = (np.random.rand() < 0.06)
+                if (len(sc[0]) == 0 and len(sc[1]) == 0) or bibpl:
+                    s_points[i] = np.random.choice(sub_G[i].nodes())
+                    p1 = ntx.dijkstra_path(G, current[i], s_points[i] )
+                    for c, c1 in zip(p1[:-1], p1[1:]):
+                        if t[i] > T: break
+                        t[i] += G[c][c1]['time']
+                        paths_c[i].append(c1)
+                        if G.edge[c][c1]['view'] == 0:
+                            L += G.edge[c][c1]['weight']
+                        G.edge[c][c1]['view'] = 1
+                        for j in range(C):
+                            try:
+                                sub_G[j].edge[c1][c]['view'] = 1
+                            except KeyError:
+                                pass
+                            try:
+                                sub_G[j].edge[c][c1]['view'] = 1
+                            except KeyError:
+                                pass
+                    current[i] = s_points[i]
                 else:
-                    #prob = draw_rv(sc[1])
-                    prob = (np.random.rand()< 0.5) & (len(sc[1])> 1)
-                    current[i] = sk[1][prob]
-                paths_c[i].append(current[i])
-                d += 1
-                t[i] += possible[current[i]]['time']
-                possible[current[i]]['view'] = 1
-                try:
-                    sub_G[i].edge[current[i]][prev]['view'] = 1
-                except KeyError:
-                    pass
+                    if len(sc[0]) > 0:
+                        prob = draw_rv(sc[0])
+                        prob = (np.random.rand()< 0.3) & (len(sc[0])> 1)
+                        current[i] = sk[0][np.argsort(sc[0])[prob]]
+                        L += p['weight']
+                    elif len(sc[1]) > 0 and not bibpl:
+                        #prob = draw_rv(sc[1])
+                        prob = (np.random.rand()< 0.3) & (len(sc[1])> 1)
+                        current[i] =  sk[1][prob]
+
+                    paths_c[i].append(current[i])
+                    d += 1
+                    t[i] += possible[current[i]]['time']
+                    possible[current[i]]['view'] = 1
+                    try:
+                        sub_G[i].edge[current[i]][prev]['view'] = 1
+                    except KeyError:
+                        pass
             go = False
-            for st in t:
+            for i, st in enumerate(t):
                 go = go | (st < T)
     print '\n',L
     return paths_c, L
@@ -227,6 +255,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Google Hash Code in Paris!')
     parser.add_argument('-d', action='store_true')
+    parser.add_argument('--deux', action='store_true')
+    parser.add_argument('--un', action='store_true')
     args = parser.parse_args()
 
 
@@ -241,11 +271,23 @@ if __name__ == '__main__':
 
     pcs = []
     scores = []
-    for i in range(20):
+    for i in range(1):
         G, params = load()
-        pc, s = main2(G, params, s_points)
+        if args.deux:
+            pc, s = main2(G, params, s_points)
+        elif args.un:
+            pc, s = main2(G, params, s_points)
+        else:
+            pc, s = main3(G, params, s_points)
         pcs.append(pc)
         scores.append(s)
         print i
     i0 = np.argmax(scores)
     pc = pcs[i0]
+    with open('../output_sp.txt', 'w') as f:
+        f.write(str(len(pc)) + '\n')
+        for p in pc:
+            f.write(str(len(p)-1)+'\n')
+            for i, n in enumerate(p[:-1]):
+                if i == 0 or p[i-1] != n:
+                    f.write(str(n) + '\n')
