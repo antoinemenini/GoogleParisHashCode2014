@@ -1,6 +1,7 @@
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -65,6 +66,275 @@ public class Graph {
 
         System.out.println("Loaded a graph of "+N+" intersections and "+M+" streets ");
 
+    }
+
+    public void naiveTrip(){
+        int[] time = new int[C];
+        int[] position = new int[C];
+        int score=0;
+        for(int c=0; c<C; c++){
+            time[c] = T;
+            position[c] = S;
+        }
+        Result res = new Result(C, S);
+        boolean[] visited = new boolean[2*M];
+        boolean[] blocked = new boolean[C];
+        boolean terminated=false;
+        while(!terminated){
+            for(int c=0; c<C; c++){
+                LinkedList<Edge> routes = streetsMap.get(position[c]);
+                float bestRatio = 0;
+                float secondBestRatio = 0;
+                Edge bestRoute = null;
+                Edge secondBestRoute = null;
+                for (Edge route : routes){
+                    float ratio = route.length / route.cost +1 ;
+                    if(ratio > bestRatio && !visited[route.index] && route.cost <= time[c]){
+                        bestRoute = route;
+                        bestRatio = ratio;
+                    }
+                    if(ratio > secondBestRatio && route.cost <= time[c]){
+                        secondBestRoute = route;
+                        secondBestRatio = ratio;
+                    }
+                }
+                if(bestRoute == null){
+
+                    bestRoute = secondBestRoute;
+                    if(secondBestRoute!=null){
+                        System.out.println("Camion "+c+ " visite encore "+secondBestRoute.end);
+                    }
+                }
+                if(bestRoute == null){
+                    if(!blocked[c]){
+                        System.out.println("Camion "+c+ " bloqué");
+                        blocked[c]=true;
+                    }
+                } else {
+                     score += bestRoute.length;
+                     time[c] -= bestRoute.cost;
+                     position[c] = bestRoute.end;
+                     visited[bestRoute.index]=true;
+                     res.addStep(c, position[c]);
+                     System.out.println("Camion "+c+ " visite "+bestRoute.end);
+                }
+            }
+            terminated = true;
+            for(int c=0; c<C; c++){
+                if(!blocked[c])
+                    terminated=false;
+            }
+        }
+        res.print("outGW.txt");
+    }
+
+    public Point forceFromVisited(boolean[] visitedNode, int node){
+        Point force = new Point();
+        Point a = intersection[node];
+        Point b, ba;
+        for(Edge e : streetsMap.get(node)){
+            if(visitedNode[e.end]){
+                b = intersection[e.end];
+                ba = Point.vect(b , a);
+                ba.mul(1./a.squaredDist(b));
+                force.add(ba);
+            }
+        }
+        return force;
+    }
+
+    public Point forceFromTrucks(int[] trucks, int truck){
+        Point force = new Point();
+        Point a = intersection[truck];
+        Point b, ba;
+        for(int c=0; c<C; c++){
+            if(c!= truck){
+                b = intersection[trucks[c]];
+                ba = Point.vect(b , a);
+                ba.mul(1./a.squaredDist(b));
+                force.add(ba);
+            }
+
+        }
+        return force;
+    }
+
+    public Point forceFromBOnA(int a, int b){
+        Point force = Point.vect(intersection[b] , intersection[a]);
+        force.mul(1. / intersection[a].squaredDist(intersection[b]));
+        return force;
+    }
+
+    public double forceOnEdge(Point force, Edge e){
+        Point ab = Point.vect(intersection[e.begin], intersection[e.end]);
+        ab = Point.vect(intersection[e.begin], intersection[e.end]);
+        return ab.dotProduct(force);
+    }
+
+    public void EuristicTrip(){
+        int[] time = new int[C];
+        int[] position = new int[C];
+        int[] oldPosition = new int[C];
+        boolean[] blocked = new boolean[C];
+        int score=0;
+        for(int c=0; c<C; c++){
+            time[c] = T;
+            position[c] = S;
+            oldPosition[c] = S;
+        }
+        Result res = new Result(C, S);
+        boolean[] visited = new boolean[N];
+        boolean[] edgeVisited = new boolean[2*M];
+
+        boolean terminated=false;
+        double biggestF, f;
+        Edge bestRoute;
+        Point force;
+        float bestRatio = 0;
+        float ratio;
+
+        while(!terminated){
+            for(int c=0; c<C; c++){
+                biggestF = -Math.PI*500;
+                bestRoute=null;
+                force = forceFromVisited(visited, position[c]);
+                force.add(forceFromTrucks(position, c));
+                if(position[c] != S)
+                    force.add(forceFromBOnA(position[c], S));
+                if(streetsMap.get(position[c]).size() == 1){
+                    Edge route =  streetsMap.get(position[c]).getFirst();
+                    if(route.cost <= time[c] ){
+                        bestRoute = route;
+                    }
+
+                } else {
+                    for(Edge route : streetsMap.get(position[c])){
+                        if(route.end != oldPosition[c]){
+                            f = forceOnEdge(force, route);
+
+                            if(!visited[route.end]){
+                                f*=20;
+                            }
+                            if(!edgeVisited[route.index]){
+                                ratio = route.length / route.cost +1 ;
+                                f+= ratio;
+                            }
+                            if(biggestF== -Math.PI*500 || (f>biggestF && route.cost <= time[c]) ){
+                                bestRoute = route;
+                                biggestF = f;
+                            }
+                        }
+                    }
+                }
+                if(bestRoute == null){
+                    if(!blocked[c]){
+                        System.out.println("Camion "+c+ " bloqué");
+                        blocked[c]=true;
+                    }
+                } else {
+
+                    if(!edgeVisited[bestRoute.index]){
+                        score += bestRoute.length;
+                    }
+                    if(!visited[bestRoute.end]){
+                        System.out.println("Camion "+c+ " visite encore "+position[c]+" | "+score);
+                        if( (c==0) && bestRoute.end==10625){
+                            System.out.println("---- ???? ------");
+                        }
+                    }
+
+                    time[c] -= bestRoute.cost;
+                    oldPosition[c]=position[c];
+                    position[c] = bestRoute.end;
+                    visited[bestRoute.end]=true;
+                    edgeVisited[bestRoute.index]=true;
+                    res.addStep(c, position[c]);
+//                    System.out.println("Camion "+c+ " visite "+position[c]);
+                }
+
+            }
+
+            terminated = true;
+            for(int c=0; c<C; c++){
+                if(!blocked[c])
+                    terminated=false;
+            }
+//            System.out.println("Camion "+1+ " visite "+position[1]+", time = "+ time[1]);
+        }
+        System.out.println("Score = "+score);
+        res.print("outGWEuristic.txt");
+
+    }
+
+    int findPath(int a0, int a1, int timeLeft, boolean[] visitedEdge, Result res, int c){
+
+        HashMap<Integer, Integer> timeFromO = new HashMap<Integer, Integer>(N);
+        HashMap<Integer, Edge> comeFrom = new HashMap<Integer, Edge>(N);
+        LinkedList<Integer> toTreat=new LinkedList<Integer>();
+        int t=-1;
+        toTreat.add(a0);
+        timeFromO.put(a0, 0);
+//        comeFrom.put(a0, a0);
+        int a, d0, d1;
+        while (!toTreat.isEmpty()){
+            a = toTreat.pop();
+            if(a==a1){
+                break;
+            }
+            if(timeFromO.get(a)<timeLeft){
+                for(Edge e : streetsMap.get(a)){
+                    if(!timeFromO.containsKey(e.end)){
+                        toTreat.add(e.end);
+                        timeFromO.put(e.end, timeFromO.get(a)+e.cost);
+                        comeFrom.put(e.end, e);
+                    } else {
+                        d0 = timeFromO.get(e.end);
+                        d1 = timeFromO.get(a)+e.cost;
+                        if(d1<d0){
+                            timeFromO.put(e.end, d1);
+                            comeFrom.put(e.end, e);
+                        }
+                    }
+                }
+            }
+
+        }
+        if(timeFromO.get(a1) > timeLeft){
+            System.err.println("Path not found in time : "+timeLeft+", need "+timeFromO.get(a1));
+        } else {
+            LinkedList<Integer> path = new LinkedList<Integer>();
+            path.addLast(a1);
+            Edge e = comeFrom.get(a1);
+            a = e.begin;
+            visitedEdge[e.index]=true;
+            int l=0;
+            t = timeLeft-timeFromO.get(a1);
+            while(a!=a0){
+                path.addFirst(a);
+                l++;
+                if(comeFrom.containsKey(a)){
+                    e = comeFrom.get(a);
+                    a = e.begin;
+                    visitedEdge[e.index]=true;
+                } else {
+                    System.err.println("Point not found : "+a);
+                    break;
+                }
+            }
+            System.out.println("Found a path of time "+t+" between "+a0+" and "+a1);
+            for(int step : path){
+                res.addStep(c, step);
+            }
+        }
+        return t;
+    }
+
+    public static void main(String[] args){
+        Graph paris = new Graph("paris_54000.txt");
+        boolean[] visitedEdges = new boolean[2*paris.M];
+        Result res = new Result(paris.C, paris.S);
+        paris.findPath(paris.S, 1000, paris.T, visitedEdges, res, 0);
+        res.print("path.txt");
     }
 
 
