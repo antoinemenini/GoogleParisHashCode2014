@@ -103,42 +103,7 @@ int quadrantRiveGauche(double lat, double lon){
     }
 }
 
-void writeForMoral(){
-    ifstream myfile("../paris_54000.txt");
-    int n,m,t,c,s;
-    myfile >> n >> m >> t >> c >> s;
-    double lat;
-    double lon;
-    cout << n << endl;
-    list<int> secteurs[9];
-    for(int i=0;i<n;++i){
-        //cout << "Plop : " << i << endl;
-        myfile >> lat >> lon;
-        int quadrant;
-        if(riveGauche(lat,lon)){
-            //cout << "Gauche\n";
-            quadrant=quadrantRiveGauche(lat,lon);
-        } else {
-            //cout << "Droite\n";
-            quadrant=quadrantRiveDroite(lat,lon);
-        }
-        secteurs[quadrant].push_back(i);
-    }
-    cout << "Plap !" << endl;
-    for(int i=1;i<=8;++i){
-        cout << "Secteur " << i << " de taille " << secteurs[i].size() << endl;
-        stringstream plap;
-        plap<<"../sub"<<i;
-        ofstream out(plap.str().c_str());
-        while(!secteurs[i].empty()){
-            int zde = secteurs[i].front();
-            secteurs[i].pop_front();
-            out << zde << ",";
-        }
-    }
-}
-
-int main(){
+void writeForMenini(){
     ifstream myfile("../paris_54000.txt");
     int n,m,t,v,s;
     myfile >> n >> m >> t >> v >> s;
@@ -169,6 +134,7 @@ int main(){
         nb_aretes[i]=0;
     }
 
+    int total_longueur=0;
     for(int i=0;i<m;++i){
         myfile >> a[i] >> b[i] >> d[i] >> c[i] >> l[i];
         if(secteur[a[i]]!=secteur[b[i]]){
@@ -177,7 +143,9 @@ int main(){
             secteurarete[i]=secteur[a[i]];
             ++nb_aretes[secteurarete[i]];
         }
+        total_longueur+=l[i];
     }
+    cout << total_longueur << endl;
 
     for(int i=1;i<=8;++i){
         cout << "Secteur " << i << " de taille " << secteurs[i].size() << endl;
@@ -196,4 +164,59 @@ int main(){
             }
         }
     }
+}
+
+void writeForMoral(){
+    ifstream myfile("../paris_54000.txt");
+    int n,m,t,c,s;
+    myfile >> n >> m >> t >> c >> s;
+    double lat;
+    double lon;
+    cout << n << endl;
+    list<int> secteurs[9];
+    int secteur[n];
+    for(int i=0;i<n;++i){
+        //cout << "Plop : " << i << endl;
+        myfile >> lat >> lon;
+        int quadrant;
+        if(riveGauche(lat,lon)){
+            //cout << "Gauche\n";
+            quadrant=quadrantRiveGauche(lat,lon);
+        } else {
+            //cout << "Droite\n";
+            quadrant=quadrantRiveDroite(lat,lon);
+        }
+        secteur[i]=quadrant;
+        secteurs[quadrant].push_back(i);
+    }
+    int a[m], b[m], d[m], ca[m], l[m];
+    for(int i=0;i<m;++i){
+        myfile >> a[i] >> b[i] >> d[i] >> ca[i] >> l[i];
+        if(secteur[a[i]]!=secteur[b[i]]){
+            if(d[i]==1)
+                secteurs[secteur[a[i]]].push_back(b[i]);
+            else{
+                secteurs[secteur[a[i]]].push_back(b[i]);
+                secteurs[secteur[b[i]]].push_back(a[i]);
+            }
+        }
+    }
+    cout << "Plap !" << endl;
+    for(int i=1;i<=8;++i){
+        cout << "Secteur " << i << " de taille " << secteurs[i].size() << endl;
+        stringstream plap;
+        plap<<"../sub"<<i;
+        ofstream out(plap.str().c_str());
+        while(!secteurs[i].empty()){
+            int zde = secteurs[i].front();
+            secteurs[i].pop_front();
+            out << zde << ",";
+        }
+    }
+}
+
+
+
+int main(){
+    writeForMoral();
 }
