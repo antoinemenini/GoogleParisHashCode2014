@@ -7,13 +7,21 @@ public class ParcoursNaif {
 	public static Graph paris = new Graph("paris_54000.txt");
 	
 	
-	public static void parcours1(){
+	public static void parcours(){
 		boolean[] parcouru = new boolean[2*paris.M];
+		int[] pointInit = {7683,  6069,  7510,  3302,  7545,  7442,  5420,  5420};
 		Result res = new Result(paris.C, paris.S);
 		Arrays.fill(parcouru, false);
 		for(int vehicule=0; vehicule<paris.C; vehicule++){
+			
+
+
 			int currentIntersection = paris.S;
 			int timeLeft = paris.T;
+			
+			// on ammene le vehicule au point pointInit[vehicule]
+						timeLeft = paris.findPath(currentIntersection, pointInit[vehicule], timeLeft, parcouru, res, vehicule);
+						currentIntersection = pointInit[vehicule];
 			while(true){
 				/* on parcourt la liste des rues pour cette intersection et on prend celle
 				avec le plus grand score qu n'a pas été visitée */
@@ -150,7 +158,7 @@ public class ParcoursNaif {
 		res.print("outMenini.txt");
 	}
 	
-	public static void parcours(){
+	public static void parcours3(){
 		boolean[] parcouru = new boolean[2*paris.M];
 		int[] pointInit = {7683,  6069,  7510,  3302,  7545,  7442,  5420,  5420};
 		Result res = new Result(paris.C, paris.S);
@@ -162,19 +170,19 @@ public class ParcoursNaif {
 		Arrays.fill(initDone, false);
 		int[] currentIntersection = new int[paris.C];
 		Arrays.fill(currentIntersection, paris.S);
-		while(!terminated){
-			
-			int score = 0;
-			int[] timeLeft = new int[paris.C];
-			Arrays.fill(timeLeft, paris.T);
-			for(int vehicule=0; vehicule<paris.C; vehicule++){
-				if(!initDone[vehicule]){
-					// on ammène le véhicule au point pointInit[vehicule]
-					timeLeft[vehicule] = paris.findPath(currentIntersection[vehicule], pointInit[vehicule], timeLeft[vehicule], parcouru, res, vehicule);
-					initDone[vehicule] = true;
-				}
+		int[] timeLeft = new int[paris.C];
+		Arrays.fill(timeLeft, paris.T);
+		/*for(int vehicule=0; vehicule<paris.C; vehicule++){
+			// on ammene le vehicule au point pointInit[vehicule]
+			timeLeft[vehicule] = paris.findPath(currentIntersection[vehicule], pointInit[vehicule], timeLeft[vehicule], parcouru, res, vehicule);
+			initDone[vehicule] = true;
+			currentIntersection[vehicule] = pointInit[vehicule];
+		}*/
+		
+		while(!terminated){		
+			for(int vehicule=0; vehicule<paris.C; vehicule++){				
 				/* on parcourt la liste des rues pour cette intersection et on prend celle
-				avec le plus grand score qu n'a pas été visitée */
+				avec le plus grand score qu n'a pas ete visitee */
 				LinkedList<Edge> routes = paris.streetsMap.get(currentIntersection[vehicule]);
 				float bestRatioNonParcouru = 0;
 				Edge bestRouteNonParcourue = null;
@@ -185,7 +193,7 @@ public class ParcoursNaif {
 				for (Edge route : routes){
 					float ratio = route.length / route.cost;
 					float score2 = 0;
-					// calcul du score de la route : c'est le nombre de routes non parcourues après la route
+					// calcul du score de la route : c'est le nombre de routes non parcourues apres la route
 					LinkedList<Edge> routesSuivantes = paris.streetsMap.get(route.end);
 					for (Edge routeSuivante : routesSuivantes){
 						float score2aux = 0;
@@ -217,11 +225,11 @@ public class ParcoursNaif {
 				}
 				else if(bestRouteNonParcourue == null){
 					routeChoisie = bestRouteByScore;
+					System.out.println("1");
 				}
 				else{
 					routeChoisie = bestRouteNonParcourue;
 				}
-				score += routeChoisie.length;
 				timeLeft[vehicule] -= routeChoisie.cost;
 				parcouru[routeChoisie.index] = true;
 				currentIntersection[vehicule] = routeChoisie.end;
