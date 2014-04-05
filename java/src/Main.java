@@ -3,7 +3,8 @@
  */
 public class Main {
     public static void main(String[] args){
-        Graph paris = new Graph("paris_54000.txt");
+    	ParcoursNaif p = new ParcoursNaif();
+    	p.parcours();
 
     }
 }
