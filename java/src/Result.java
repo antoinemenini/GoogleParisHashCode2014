@@ -1,4 +1,4 @@
-import java.io.OutputStream;
+import java.io.*;
 import java.util.LinkedList;
 
 /**
@@ -15,7 +15,7 @@ public class Result {
         step = new int[C];
         for(int i=0; i<C; i++){
             trips[i] = new LinkedList<Integer>();
-            trips[i].add(S);
+            trips[i].addLast(S);
             step[i] = 1;
         }
     }
@@ -25,7 +25,36 @@ public class Result {
         ++step[c];
     }
 
-    public void print(OutputStream out){
+    public void print(String filename){
+        try {
+            this.print(new FileWriter(filename));
+        } catch (IOException e) {
+            System.out.println("Unable to write in "+filename);
+        }
+    }
 
+
+
+    public void print(FileWriter out){
+        try {
+            out.write(""+C+"\n");
+            for(int c=0; c<C; c++){
+                out.write(""+step[c]+"\n");
+                for(int e : trips[c]){
+                    out.write(""+e+"\n");
+                }
+            }
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void main(String[] args){
+        Result r = new Result(2,0);
+        r.addStep(1, 1);
+        r.addStep(1, 2);
+        r.print("output.txt");
     }
 }
