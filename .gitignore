@@ -1,3 +1,5 @@
 *.pyc
 *.npy
 *.txt
+java/src/.idea
+
