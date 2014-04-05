@@ -1,6 +1,7 @@
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -142,6 +143,22 @@ public class Graph {
         return force;
     }
 
+    public Point forceFromTrucks(int[] trucks, int truck){
+        Point force = new Point();
+        Point a = intersection[truck];
+        Point b, ba;
+        for(int c=0; c<C; c++){
+            if(c!= truck){
+                b = intersection[trucks[c]];
+                ba = Point.vect(b , a);
+                ba.mul(1./a.squaredDist(b));
+                force.add(ba);
+            }
+
+        }
+        return force;
+    }
+
     public Point forceFromBOnA(int a, int b){
         Point force = Point.vect(intersection[b] , intersection[a]);
         force.mul(1. / intersection[a].squaredDist(intersection[b]));
@@ -157,14 +174,17 @@ public class Graph {
     public void EuristicTrip(){
         int[] time = new int[C];
         int[] position = new int[C];
+        int[] oldPosition = new int[C];
         boolean[] blocked = new boolean[C];
         int score=0;
         for(int c=0; c<C; c++){
             time[c] = T;
             position[c] = S;
+            oldPosition[c] = S;
         }
         Result res = new Result(C, S);
         boolean[] visited = new boolean[N];
+        boolean[] edgeVisited = new boolean[2*M];
 
         boolean terminated=false;
         double biggestF, f;
@@ -175,19 +195,35 @@ public class Graph {
 
         while(!terminated){
             for(int c=0; c<C; c++){
-                biggestF = Double.MIN_VALUE;
+                biggestF = -Math.PI*500;
                 bestRoute=null;
                 force = forceFromVisited(visited, position[c]);
-
+                force.add(forceFromTrucks(position, c));
                 if(position[c] != S)
                     force.add(forceFromBOnA(position[c], S));
-                for(Edge route : streetsMap.get(position[c])){
-                    f = forceOnEdge(force, route);
-                    ratio = route.length / route.cost +1 ;
-                    f+= ratio;
-                    if(f>biggestF && route.cost <= time[c]){
+                if(streetsMap.get(position[c]).size() == 1){
+                    Edge route =  streetsMap.get(position[c]).getFirst();
+                    if(route.cost <= time[c] ){
                         bestRoute = route;
-                        biggestF = f;
+                    }
+
+                } else {
+                    for(Edge route : streetsMap.get(position[c])){
+                        if(route.end != oldPosition[c]){
+                            f = forceOnEdge(force, route);
+
+                            if(!visited[route.end]){
+                                f*=20;
+                            }
+                            if(!edgeVisited[route.index]){
+                                ratio = route.length / route.cost +1 ;
+                                f+= ratio;
+                            }
+                            if(biggestF== -Math.PI*500 || (f>biggestF && route.cost <= time[c]) ){
+                                bestRoute = route;
+                                biggestF = f;
+                            }
+                        }
                     }
                 }
                 if(bestRoute == null){
@@ -196,15 +232,22 @@ public class Graph {
                         blocked[c]=true;
                     }
                 } else {
-                    if(!visited[bestRoute.end]){
+
+                    if(!edgeVisited[bestRoute.index]){
                         score += bestRoute.length;
-                    } else {
-                        System.out.println("Camion "+c+ " visite encore "+position[c]);
+                    }
+                    if(!visited[bestRoute.end]){
+                        System.out.println("Camion "+c+ " visite encore "+position[c]+" | "+score);
+                        if( (c==0) && bestRoute.end==10625){
+                            System.out.println("---- ???? ------");
+                        }
                     }
 
                     time[c] -= bestRoute.cost;
+                    oldPosition[c]=position[c];
                     position[c] = bestRoute.end;
                     visited[bestRoute.end]=true;
+                    edgeVisited[bestRoute.index]=true;
                     res.addStep(c, position[c]);
 //                    System.out.println("Camion "+c+ " visite "+position[c]);
                 }
@@ -223,6 +266,53 @@ public class Graph {
 
     }
 
+    int findPath(int a0, int a1, int timeLeft, boolean[] visitedEdge, Result res, int c){
+
+        HashMap<Integer, Integer> distance = new HashMap<Integer, Integer>(N);
+        HashMap<Integer, Integer> comeFrom = new HashMap<Integer, Integer>(N);
+        LinkedList<Integer> toTreat=new LinkedList<Integer>();
+
+        toTreat.add(a0);
+        distance.put(a0, 0);
+        int a, d0, d1;
+        while (!toTreat.isEmpty()){
+            a = toTreat.pop();
+            if(a==a1){
+                break;
+            }
+            if(distance.get(a)<timeLeft){
+                for(Edge e : streetsMap.get(a)){
+                    if(!distance.containsKey(e.end)){
+                        toTreat.add(e.end);
+                        distance.put(e.end, distance.get(a)+e.cost);
+                        comeFrom.put(e.end, a);
+                    } else {
+                        d0 = distance.get(e.end);
+                        d1 = distance.get(a)+e.cost;
+                        if(d1<d0){
+                            distance.put(e.end, d1);
+                            comeFrom.put(e.end, a);
+                        }
+                    }
+                }
+            }
+
+        }
+        if(distance.get(a1) > timeLeft){
+            System.err.println("Path not found in time : "+timeLeft+", need "+distance.get(a1));
+        }
+        LinkedList<Integer> path = new LinkedList<Integer>();
+        path.addLast(a1);
+        a = comeFrom.get(a1);
+        while(a!=a1){
+            path.addFirst(a);
+            a = comeFrom.get(a);
+        }
+        for(int step : path){
+            res.addStep(c, step);
+        }
+        return timeLeft;
+    }
 
 
 }
