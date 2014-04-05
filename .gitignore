@@ -4,3 +4,4 @@ java/.project/*
 java/.classpath/*
 java/.settings
 java/src/.idea
+.metadata/*
