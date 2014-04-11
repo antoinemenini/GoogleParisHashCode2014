@@ -11,7 +11,6 @@ def load():
         param_str = f.readline()
         lines = f.readlines()
     params = param_str.split(' ')
-    print params
     for i in range(len(params)-1):
         params[i] = int(params[i])
     params[-1] = int(params[-1][:-1])
@@ -35,6 +34,12 @@ def load():
                                         view=0, time=int(param_edge[3]))
 
     return G, params
+
+def load_sub(G, i):
+    nodes = np.genfromtxt('../sub{}'.format(i), delimiter=',')
+    Gi = G.subgraph(nodes[:-1])
+    return Gi
+
 
 if __name__ == '__main__':
     G, params = load()
