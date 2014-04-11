@@ -40,5 +40,9 @@ public class Point {
         return (lon*p.lon) + (lat*p.lat);
     }
 
+    public String toString(){
+        return "("+lat+", "+lon+")";
+    }
+
 
 }
